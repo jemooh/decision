@@ -1,0 +1,579 @@
+<link rel="stylesheet" href="admin.css">
+
+<script type="text/javascript" src="../front/libs/jquery-2.1.4.min.js"></script>
+
+<!-- DataTables CSS -->
+
+<link rel="stylesheet" type="text/css" href="../front/libs/DataTables-1.10.7/media/css/jquery.dataTables.min.css">
+
+
+
+<!-- jQuery 
+
+<script type="text/javascript" charset="utf8" src="../front/libs/DataTables-1.10.7/media/js/jquery.js"></script>
+
+-->
+
+<!-- DataTables -->
+
+<script type="text/javascript" charset="utf8" src="../front/libs/DataTables-1.10.7/media/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript">
+    const MULTI = 1;
+
+
+
+    var resources;
+
+    var apiUrl = "../api";
+
+    var resourceObjects = [];
+
+
+
+    $(document).ready(function() {
+
+
+
+        $.ajax({
+
+
+
+            url: apiUrl + '/admin/resources',
+
+            method: "get",
+
+            success: function(responce) {
+
+
+
+                resources = responce;
+
+
+
+                $.each(resources, function(i, resource) {
+
+
+
+                    var button = $("<button>" + resource.title + "</button>");
+
+
+
+                    button.click(function() {
+
+                        $('#main').empty();
+
+                        new Resource($('#main'), resource);
+
+
+
+                    });
+
+
+
+                    $('#menu').append(button);
+
+
+
+                });
+
+
+
+            }
+
+
+
+        });
+
+
+
+
+    });
+
+
+
+    function zeroPadded(val) {
+
+        if (val >= 10)
+
+            return val;
+
+        else {
+
+
+
+            return "0" + val;
+
+
+
+        }
+
+    }
+
+
+
+
+    var Resource = function(place, resource) {
+
+
+
+        this.place = place;
+
+
+
+        this.createDetailsTable = function(resource) {
+
+
+
+            var that = this;
+
+
+
+            $.each(resource.insert.columns, function(i, column) {
+
+
+
+                var el = $("<div></div>");
+
+                var element;
+
+                var label = "<label for=\"" + column.column + "\">" + column.title + "</label>";
+
+
+
+                if (column.type == "datetime") {
+
+
+
+                    element = $("<input name=\"" + column.column + "\" type=\"datetime-local\">");
+
+
+
+                } else if (column.type == "bool") {
+
+
+
+                    element = $("<input name=\"" + column.column + "\" type=\"checkbox\">");
+
+
+
+                } else if (column.type == "select") {
+
+
+
+                    element = $("<select name=\"" + column.column + "\"></select>");
+
+                    if (column.resource != null) {
+
+                        $.ajax({
+
+                            type: "GET",
+
+                            url: apiUrl + column.resource,
+
+                            success: function(data) {
+
+
+
+                                $.each(data, function(i, d) {
+
+
+
+                                    element.append('<option value="' + d.id + '">' + d.title + '</option>');
+
+
+
+                                });
+
+                            }
+
+                        });
+
+
+
+
+                    }
+
+
+
+
+                } else {
+
+
+
+                    element = $("<input name=\"" + column.column + "\" type=\"text\">");
+
+
+
+                }
+
+
+
+                element.attr('id', field_id(column.column));
+
+                that.field_tags[column.column] = element;
+
+                that.form.append(label);
+
+                that.form.append(element);
+
+                //alert(JSON.stringify(element));
+
+                //form.append(el);								
+
+
+
+            });
+
+
+
+            that.submit = $("<button class=\"submit\"> Add </submit>");
+
+            that.cancel = $("<button > Cancel </submit>");
+
+
+
+            that.submit.click(function() {
+
+
+
+                var data = that.form.serialize();
+
+
+
+                $.ajax({
+
+                    url: apiUrl + resource.url + (that.mode == "add" ? "" : "/" + that.edit_id),
+
+                    type: that.mode == "add" ? "post" : "put",
+
+                    data: data,
+
+                    success: function(responce) {
+
+
+
+                        that.mode = "add";
+
+                        that.submit.html("Add");
+
+                        that.form.trigger("reset");
+
+                        
+                       	that.table.ajax.reload();
+
+
+
+                    }
+
+
+
+                });
+
+                return false;
+
+
+
+
+            });
+
+            that.form.append(that.submit);
+
+
+
+            that.cancel.click(function() {
+
+
+
+                form.empty();
+
+
+
+                if (that.mode == "edit") {
+
+
+
+                    that.mode = "add";
+
+                    that.submit.html("Add");
+
+                    that.hidedependencies();
+
+
+
+                }
+
+
+
+                return false;
+
+
+
+
+            });
+
+
+
+            that.form.append(that.cancel);
+
+
+
+            that.details_form.append(that.form);
+
+
+
+
+        }
+
+
+
+        this.hidedependencies = function() {
+
+
+
+            if (this.dependencies_tag != null) {
+
+
+
+                this.dependencies_tag.empty();
+
+
+
+            }
+
+
+
+        }
+
+        this.showdependencies = function() {
+
+
+
+            var that = this;
+
+
+
+            if (this.dependencies_tag == null) {
+
+
+
+                this.dependencies_tag = $("<div class=\"dependencies\"></div");
+
+                this.place.append(this.dependencies_tag);
+
+
+
+            }
+
+
+
+            this.dependencies_tag.empty();
+
+
+
+
+            $.each(this.resource.dependencies, function(i, initial_dependence) {
+
+
+
+                var dependence = jQuery.extend(true, {}, initial_dependence);
+
+                var dependence_tag = $("<div></div>");
+
+                dependence_tag.append("<h3>" + (dependence.title) + "</h3>");
+
+                var dependence_place = $("<div></div>");
+
+                that.dependencies_tag.append(dependence_tag);
+
+                that.dependencies_tag.append(dependence_place);
+
+                dependence.url = dependence.url.replace(":parent", that.edit_id);
+
+                new Resource(dependence_place, dependence);
+
+
+
+            });
+
+
+
+        }
+
+
+
+        this.field_tags = {};
+
+        //this.table = null;
+
+        this.mode = "add";
+
+        var that = this;
+
+        //var submit, cancel, edit_id;
+
+        this.form = $("<form></form>");
+
+        this.details_form = $("<div id=\"details_form\"></div>");
+
+        this.details_form.append(this.form);
+
+        this.list = $("<div id=\"list\"></div>");
+
+        this.table_tag = $("<table id=\"list_table\" class=\"display\" cellspacing=\"0\"><thead></thead></table>");
+
+        this.list.append(this.table_tag);
+
+
+
+        place.append(this.details_form);
+
+        place.append(this.list);
+
+
+
+        this.resource = resource;
+
+
+
+        /*if (this.table != undefined) {
+
+
+
+            this.table = this.table_tag.dataTable();
+
+            this.table.destroy();
+
+            this.table_tag.empty();
+
+
+
+        }*/
+
+
+
+        this.columns = resource.columns;
+
+
+
+        this.columns.push({
+
+            "className": 'delete',
+
+            "orderable": false,
+
+            "data": null,
+
+            "defaultContent": '<button>edit</button>'
+
+        });
+
+        this.columns.push({
+
+            "className": 'delete',
+
+            "orderable": false,
+
+            "data": null,
+
+            "defaultContent": '<button>delete</button>'
+
+        });
+
+
+        this.table = this.table_tag.DataTable({
+
+
+
+            "ajax": apiUrl + this.resource.url,
+
+            "columns": this.columns,
+
+            "fnRowCallback": function(nRow, aData, iDisplayIndex) {
+
+
+
+                
+
+
+                /*if (that.resource.row_actions != null) {
+
+
+
+                    $.each(that.resource.row_actions, function(i, action) {
+
+
+
+                        var button = $('<button></button>');
+
+                        button.click(function() {
+
+
+
+                            eval(action.onClick);
+
+
+
+                        })
+
+
+
+                        button.html(action.title);
+
+                        $('td:eq(' + (that.columns.length - 1) + ')', nRow).append(button);
+
+
+
+                    });
+
+
+
+                }*/
+
+
+
+                return nRow;
+
+
+
+            },
+
+
+
+        });
+
+
+
+        this.form.empty();
+
+        this.createDetailsTable(this.resource);
+
+
+
+    }
+
+
+
+    function field_id(name) {
+
+
+
+        return 'field_' + name;
+
+
+
+    }
+
+
+
+    var ResourceInterface = function(place, resource) {
+
+
+
+
+    }
+</script>
+
+<div id="menu"></div>
+
+<div id="main"></div>

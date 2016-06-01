@@ -1,0 +1,198 @@
+
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Highcharts Example</title>
+
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<style type="text/css">
+${demo.css}
+		</style>
+		<script type="text/javascript">
+var  mode=0;
+Array.prototype.clone = function() {
+    return this.slice(0);
+};
+
+$(function () {
+
+    var data0 = [[0.54, 0.1], [0.8, 0.2], [0.35, 0.35], [0.5, 0.62], [0.1, 0.9]];
+    var data1 =[];
+    
+    var ticks = [[],[]];
+
+    
+
+   var S=10,k = 0.1;
+
+function updatedPreferences(data, s, k){
+
+    var result = [];
+     for(var i=0; i < data.length; i++){
+
+            result.push([data0[i][0], data0[i][1] + s * k * (data0[i][0]-0.5), data0[i][0]]);
+
+    }
+    return result;
+}
+    
+    data1 = updatedPreferences(data0, S, k);
+    
+    for(var j=0; j < 2; j++){
+
+        for(var i=0; i < data0.length; i++){
+
+       
+           ticks[j].push(data0[i][j]);
+
+        }
+    
+        ticks[j].sort();
+    }
+
+    var chart;
+    $('#container').highcharts(chart = {
+        chart: {
+            type: 'scatter',            
+           alignTicks: false
+        },
+        title: {
+            text: 'Choice of options'
+        },
+        xAxis: {
+            title: {
+                enabled: true,
+                text: 'Other\'s rating'
+            },
+             
+            gridLineDashStyle: 'longdash',
+            gridLineWidth: 1,
+            tickPositions: ticks[0]
+        },
+        yAxis: {
+            title: {
+                text: 'My rating'
+            },
+            gridLineWidth: 1,
+            gridLineDashStyle: 'longdash',
+            tickPositions: ticks[1],
+            endOnTick: false,
+            startOnTick: false
+
+        },
+       
+        plotOptions: {
+            scatter: {
+                marker: {
+                    radius: 5,
+                    states: {
+                        hover: {
+                            enabled: true,
+                            lineColor: 'rgb(100,100,100)'
+                        }
+                    }
+                },
+                states: {
+                    hover: {
+                        marker: {
+                            enabled: false
+                        }
+                    }
+                },
+                tooltip: {
+                    /*headerFormat: '<b>{series.name}</b><br>',*/
+                    pointFormat: 'My rating: {point.y}, <br>Other\'s rating: {point.x}<br> Earning: +{point.z}'
+                }
+            }
+        },
+        series: [{
+            name: 'Options',
+            color: 'rgba(80, 83, 180, .5)',
+            data: data0
+               
+
+        },
+        {
+            name: 'Updated options',
+            color: 'rgba(180, 83, 10, .5)',
+            data: data1,
+            visible: true
+
+        }
+        ]
+    });
+    
+    $('#change').click(function (){
+        var chart = $('#container').highcharts();
+        mode = 1 - mode;        
+        mode ? chart.series[1].show() : chart.series[1].hide();
+    });
+
+    $('#capital').on('input change', function(){
+
+        S = $('#capital').val();
+        data1 = updatedPreferences(data0, k, S);
+        var chart = $('#container').highcharts();
+        chart.series[1].setData(data1);
+    
+    });
+
+    $('#importance').on('input change', function(){
+
+        k = $('#importance').val();
+        data1 = updatedPreferences(data0, k, S);
+        var chart = $('#container').highcharts();
+        chart.series[1].setData(data1);
+    
+    });
+});
+
+function update(a, b){
+    
+     for(var j=0; j < 2; j++){
+
+        for(var i=0; i < a.length; i++){
+
+       
+           a[i][j]=b[i][j];
+
+        }    
+        
+    }
+}
+
+		</script>
+	</head>
+    <style>
+     #controls, #container{
+
+        height: 100%;
+        float:left;
+     }
+    #controls{
+
+        margin:10%;
+        width:30%;
+    }
+    #controls input {
+
+        display:block;
+        margin-bottom: 50px;
+    }
+    </style>
+	<body>
+<script src="js/highcharts.js"></script>
+<script src="js/modules/exporting.js"></script>
+<div id="controls">
+    <label for="capital">Social capital (SC)</label>
+    <input id="capital" min="0" max="100" step="1" value="20"/>
+    <label for="importance">Importance (k)</label>
+    <input id="importance" type="range" min="0" max="1" step="0.02" value="0.1" />
+    <button id="change">Show / hide</button>
+</div>
+<div id="container" style="min-width: 700px; height: 700px; max-width: 700px; margin: 0 auto"></div>
+
+
+	</body>
+</html>

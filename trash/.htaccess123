@@ -1,0 +1,4 @@
+AuthName "Protected Administration Page"
+AuthType Basic
+AuthUserFile /var/chroot/home/content/20/4887120/html/decisions/.htpasswd
+Require valid-user

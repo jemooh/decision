@@ -1,0 +1,19 @@
+#list_table{
+
+	width:30%;
+
+}
+
+#details_form input, #details_form select{
+
+	display:block;
+	
+
+}
+
+.submit{
+
+	display:block;
+	margin-top:20px;
+
+}
