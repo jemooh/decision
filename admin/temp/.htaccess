@@ -1,4 +1,4 @@
 AuthName "Protected Administration Page"
 AuthType Basic
-AuthUserFile C:/xampp/htdocs/decisions/admin/.htpasswd
+AuthUserFile test.ihubconsulting.org/admin/.htpasswd
 Require valid-user
