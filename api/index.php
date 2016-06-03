@@ -550,7 +550,7 @@ function authenticate($resource, $arrgs, $db, $post, $app, $method)
 
     eval("\$get_sql = \"" . addslashes($resource->authenticate) . "\";");
 
-
+ 
     if ($result = $db->query($get_sql)) {
 
         if ($row = $result->fetch_array(MYSQLI_ASSOC)) {
@@ -568,10 +568,11 @@ function authenticate($resource, $arrgs, $db, $post, $app, $method)
 function connect_db()
 {
 
-    $server = 'localhost';
+    $server = '127.0.0.1';
+
     // this may be an ip address instead
 
-    $user = 'dss';
+    $user = 'root';
 
     $pass = '';
 
